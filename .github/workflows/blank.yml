@@ -5,9 +5,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    
     - name: rclone
       uses: wei/rclone@v1
       env:
         RCLONE_CONF: ${{ secrets.rclone }}
       with:
-        args: copy ${{ github.workspace }} drive:Colab\ Notebooks/arch
+        args: copy /github/workspace drive:Colab\ Notebooks/arch
