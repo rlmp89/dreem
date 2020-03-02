@@ -18,6 +18,7 @@ def main(config):
         shuffle=False,
         validation_split=0.0,
         training=False,
+        testing=True,
         num_workers=config['data_loader']['args']['num_workers']
     )
 
