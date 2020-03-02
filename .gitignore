@@ -1,0 +1,16 @@
+# Jupyter Notebook
+.ipynb_checkpoints
+
+__pycache__
+
+# input data, saved log, checkpoints
+data/
+input/
+saved/
+datasets/
+out
+# editor, os cache directory
+.vscode/
+
+#secrets
+.secrets
