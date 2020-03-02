@@ -63,6 +63,6 @@ if __name__ == '__main__':
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size')
     ]
     config = ConfigParser.from_args(args, options)
-    from torch.multiprocessing import Pool, Process, set_start_method
-    set_start_method('spawn')
+    #from torch.multiprocessing import Pool, Process, set_start_method
+    #set_start_method('spawn')
     main(config)
