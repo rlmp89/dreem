@@ -56,9 +56,9 @@ class DreemDataset(data.Dataset):
         if self.training or self.testing:
           y = self.labels[IDX%n_subjects]
           y = torch.from_numpy(y).squeeze()
-          return x  
+          return (x ,y)
         else:
-          return (x,None)
+          return x
     
 
 class DreemDataLoader(BaseDataLoader):
@@ -67,5 +67,5 @@ class DreemDataLoader(BaseDataLoader):
     """
     def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True, testing=False, transform={}):
         self.data_dir = data_dir
-        self.dataset = DreemDataset(self.data_dir, transform=transform, training=training)
+        self.dataset = DreemDataset(self.data_dir, transform=transform, training=training, testing=testing)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
