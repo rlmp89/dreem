@@ -18,26 +18,33 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
             #for a  n^m model webuild:
             # a first conv layer with kernel-stride n
             #type   kernel  stride  padding filters output_dim
-        # 1 #conv   3       3       0       128     166 x 128
+        # 1 #conv   3       1       0       128     500 x 128
             #------------------------------------------------
-        # 2 #conv   3       1       1       128     166 x 128 
-            #maxpl  3       3       0       128     55  x 128
+        # 2 #conv   3       1       1       128     500 x 128 
+            #maxpl  3       3       0       128     166  x 128
             #------------------------------------------------
-        # 3 #conv   3       1       1       256     55  x 256 
-            #maxpl  3       3       0       256     18  x 256
+        # 3 #conv   3       1       1       128     166  x 256 
+            #maxpl  3       3       0       256     55  x 256
             #------------------------------------------------
-        # 4 #conv   3       1       1       512     18  x 512
-            #maxpl  3       3       0       512     6   x 512    
+        # 4 #conv   3       1       1       256     55  x 512
+            #maxpl  3       3       0       512     18   x 512 
+            #------------------------------------------------  
+        # 5 #conv   3       1       1       512     18  x 1024
+            #maxpl  3       3       0       1024     6   x 1024  
 
             #1
-            self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 3,3,0,False)]
+            self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 3,1,1,False)]
             #2
-            self.conv_blocks.append(self.build_block(128, 166, 128, 3,1,1,True))
+            self.conv_blocks.append(self.build_block(128, 500, 128, 3,1,1,True))
             #3
-            self.conv_blocks.append(self.build_block(128, 55, 256, 3,1,1,True))
+            self.conv_blocks.append(self.build_block(128, 166, 256, 3,1,1,True))
             #4
-            self.conv_blocks.append(self.build_block(256, 18, 512, 3,1,1,True))
-
+            self.conv_blocks.append(self.build_block(256, 55, 512, 3,1,1,True))
+            #5
+            self.conv_blocks.append(self.build_block(512, 18, 1024, 3,1,1,True))
+            for idx in range(len(self.conv_blocks)):
+              for module in ('conv','act','pool','batch_norm'):
+                  setattr(self,f"L{idx}_{module}",self.conv_blocks[idx][module])
 
             in_fc1 =  self.conv_blocks[-1]['Lout'] * self.conv_blocks[-1]['output_chan']
     
@@ -174,6 +181,8 @@ class DreemModelMultihead(BaseModel):
         block['batch_norm'] =  nn.BatchNorm1d(num_features=block['n_filters'])
         for k,v in block.items():
           self.conv_blocks.get(f"layer_{layer}").get(k).append(v)
+
+
        
 
     def forward(self, x):

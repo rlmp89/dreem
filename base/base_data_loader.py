@@ -24,6 +24,7 @@ class BaseDataLoader(DataLoader):
             'collate_fn': collate_fn,
             'num_workers': num_workers
         }
+       
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
     def _split_sampler(self, split):
@@ -47,6 +48,7 @@ class BaseDataLoader(DataLoader):
 
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
+        np.savetxt("valid.csv",valid_idx,fmt='%d')
 
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False

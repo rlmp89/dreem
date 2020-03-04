@@ -43,9 +43,9 @@ class DreemDataset(data.Dataset):
     def __getitem__(self, idx):
         # get data
         # access to h5py inside __getitem__ mandatory in order to be able to use multiprocessing
-        n_subjects = self.data_shape[0]
+        
         IDX =  self.index_map[idx]
-        x = self.data[IDX%n_subjects, :, :]
+        x = self.data[IDX, :, :]
 
         '''if "band_filter" in self.transform:
             low,high = self.transform['band_filter']
@@ -54,6 +54,7 @@ class DreemDataset(data.Dataset):
       
         # get label
         if self.training or self.testing:
+          n_subjects = self.data_shape[0]
           y = self.labels[IDX%n_subjects]
           y = torch.from_numpy(y).squeeze()
           return (x ,y)

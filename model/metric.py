@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import pandas as pd
+from functools import partial
 #################################
 # decorators
 #################################
@@ -26,6 +27,21 @@ def validMetric(metric):
     return metric
 #################################
 
+#set metric wrapper for metrics with args
+def wrappedMetric(metric_name, args={}):
+    target_func = getattr(sys.modules[__name__],metric_name)
+    metric = partial(target_func,**args)
+    # set attributes inherited from target function
+    metric.__name__= target_func.__name__
+    metric.__name__ += "_"+"_".join(["_".join([str(k),str(v)]) for k,v in args.items()])
+  
+    for k,v in target_func.__dict__.items():
+      setattr(metric,k,v)
+    return metric
+
+
+
+
 @trainMetric
 @validMetric
 def accuracy(output, target):
@@ -35,6 +51,7 @@ def accuracy(output, target):
         correct = 0
         correct += torch.sum(pred == target).item()
     return correct / len(target)
+
 
 
 
@@ -57,8 +74,6 @@ def dreem_merged_accuracy(output, target):
         #calculate prediction mean among 40 trials for each individual
         y_pred_merged = torch.stack(output.chunk(40),axis=1).mean(axis=1)  
         # dim = (n_individuals, n_classes)
-
-
         y_true_merged = torch.stack(target.chunk(40),axis=1)[:,0]
         return accuracy(y_pred_merged, y_true_merged)  
 
@@ -86,3 +101,24 @@ def cohen_kappa(output, target):
         y_true = target.cpu().numpy()
         y_pred = torch.argmax(output, dim=1).cpu().numpy()
     return cohen_kappa_score(y_true, y_pred)
+
+
+
+@validMetric
+@globalMetric
+def accuracy_bootstrap_lowerbound(output, target,K,sigma=2):
+    assert sigma in (1,2,3), "Sigma Confidence interval  must be in (1,2,3)"
+    sz = output.size()[0]
+    all_acc= []
+    from random import choices
+    from math import sqrt
+    with torch.no_grad():
+        for _ in range(K):
+            bootstrap_idx = choices(list(range(sz)),k = sz)
+            o = output[bootstrap_idx,:]
+            t = target[bootstrap_idx]
+            all_acc.append(accuracy(o, t) )
+        all_acc = np.array(all_acc)
+        mu= all_acc.mean()
+        std = all_acc.std()
+        return mu - sigma*std/sqrt(sz)

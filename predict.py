@@ -46,7 +46,7 @@ def main(config):
             output = model(data)
             pred_all.append(output)
         pred_all = torch.cat(pred_all)
-        y_pred_merged = torch.stack(output.chunk(40),axis=1).mean(axis=1).argmax(axis=1)   
+        y_pred_merged = torch.stack(pred_all.chunk(40),axis=1).mean(axis=1).argmax(axis=1)   
         pred = y_pred_merged.cpu().numpy()
         np.savetxt(config["output"],pred,fmt='%d')
    

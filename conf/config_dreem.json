@@ -51,7 +51,7 @@
             "weight": [1.0,3.0]
         }
     },
-    "metrics": ["accuracy","roc_auc","f1","cohen_kappa"],
+    "metrics": ["accuracy","roc_auc","f1","cohen_kappa",{"type":"accuracy_bootstrap","args":{"K":100}}],
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
