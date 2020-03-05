@@ -27,7 +27,7 @@ class Trainer(BaseTrainer):
         self.log_step = int(np.sqrt(data_loader.batch_size))
 
         self.train_metrics= [m for m in self.metric_ftns if  hasattr(m,"train_metric")]
-        self.valid_metrics= [m for m in self.metric_ftns if  hasattr(m,"valid_metric")]dict
+        self.valid_metrics= [m for m in self.metric_ftns if  hasattr(m,"valid_metric")]
 
         self.train_metrics_tracker = MetricTracker('loss', *[m.__name__ for m in self.train_metrics], writer=self.writer)
         self.valid_metrics_tracker = MetricTracker('loss', *[m.__name__ for m in self.valid_metrics], writer=self.writer)

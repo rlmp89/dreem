@@ -5,21 +5,21 @@
     "arch": {
         "type": "DreemModelMultihead",
         "args": { "conf":[
-                    {"n_filters":128,
-                    "kernel":5,
+                    {"n_filters":256,
+                    "kernel":2,
                     "stride":1,
                     "pool_kernel":2,
                     "pool_stride" :2    
                    
                     },
-                    {"n_filters":128,
+                    {"n_filters":256,
                         "kernel":4,
                         "stride":1,
                         "pool_kernel":2,
                         "pool_stride" :2
                                  
                         },
-                    {"n_filters":128,
+                    {"n_filters":256,
                             "kernel":3,
                             "stride":1,
                             "pool_kernel":2,
@@ -32,7 +32,7 @@
             "data_dir": "data/dreem/train",
             "batch_size": 64,
             "shuffle": false,
-            "validation_split": 0.1,
+            "validation_split": 0.25,
             "num_workers": 8,
             "transform":{"outliers":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]}
         }
@@ -40,7 +40,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.001,
+            "lr": 0.002,
             "weight_decay": 0,
             "amsgrad": true
         }
@@ -48,15 +48,15 @@
     "loss": {
         "type":"nll_loss",
         "args":{
-            "weight": [1.0,3.0]
+            "weight": [22.0,78.0]
         }
     },
-    "metrics": ["accuracy","roc_auc","f1","cohen_kappa",{"type":"accuracy_bootstrap","args":{"K":100}}],
+    "metrics": ["accuracy","roc_auc","f1","cohen_kappa",{"type":"accuracy_bootstrap_lowerbound","args":{"K":25}}],
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
-            "step_size": 3,
-            "gamma": 0.1
+            "step_size": 10,
+            "gamma": 0.25
         }
     },
     "trainer": {

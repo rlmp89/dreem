@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from base import BaseModel
 import math
 
-def get_out_size(Lin,padding,dilation,stride,kernel_sz):
+def get_out_size(Lin,kernel_sz,stride,padding,dilation=1):
     Lout =  math.floor( (Lin + 2* padding - dilation*(kernel_sz-1) - 1 )/stride +1 )
     return Lout
 
@@ -34,16 +34,38 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
 
             #1
             self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 3,1,1,False)]
-            #2
-            self.conv_blocks.append(self.build_block(128, 500, 128, 3,1,1,True))
-            #3
-            self.conv_blocks.append(self.build_block(128, 166, 256, 3,1,1,True))
-            #4
-            self.conv_blocks.append(self.build_block(256, 55, 512, 3,1,1,True))
-            #5
-            self.conv_blocks.append(self.build_block(512, 18, 1024, 3,1,1,True))
+            k=0
+            while self.conv_blocks[-1]['Lout'] > 10:
+              k+=1
+              self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , 3,1,1,True))
+            # #2
+            # self.conv_blocks.append(self.build_block(128, 500, 128, 3,1,1,True))
+            # #3
+            # self.conv_blocks.append(self.build_block(128, 166, 256, 3,1,1,True))
+            # #4
+            # self.conv_blocks.append(self.build_block(256, 55, 512, 3,1,1,True))
+            # #5
+            # self.conv_blocks.append(self.build_block(512, 18, 1024, 3,1,1,True))
+            # #6
+            # self.conv_blocks.append(self.build_block(1024, 6, 1024, 3,1,1,True))
+
+            # self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 2,1,0,False)]
+            # #2
+            # self.conv_blocks.append(self.build_block(128, 499, 128, 2,1,0,True))
+            # #3
+            # self.conv_blocks.append(self.build_block(128, 249, 256, 2,1,0,True))
+            # #4
+            # self.conv_blocks.append(self.build_block(256, 124, 256, 2,1,0,True))
+            # #5
+            # self.conv_blocks.append(self.build_block(256, 61, 512, 2,1,0,True))
+            # #6
+            # self.conv_blocks.append(self.build_block(512, 30, 512, 2,1,0,True))
+            # #7
+            # self.conv_blocks.append(self.build_block(512, 14, 1024, 2,1,0,True))
+            # #8
+            # self.conv_blocks.append(self.build_block(1024, 6, 1024, 2,1,0,True))
             for idx in range(len(self.conv_blocks)):
-              for module in ('conv','act','pool','batch_norm'):
+              for module in ('conv','drop','pool','batch_norm','act'):
                   setattr(self,f"L{idx}_{module}",self.conv_blocks[idx][module])
 
             in_fc1 =  self.conv_blocks[-1]['Lout'] * self.conv_blocks[-1]['output_chan']
@@ -63,20 +85,21 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
                         )
         Lout = get_out_size( Lin = N_sample, 
                         padding = padding,
-                        dilation = 1,
                         stride =stride,
                         kernel_sz = kernel
+                       
                         )
         block['act'] =  nn.ReLU()
 
         block['pool'] = nn.MaxPool1d( kernel_size = kernel) if max_pool else lambda x:x
-
+        block['drop'] = nn.Dropout(0.15)
         block['Lout'] = get_out_size(   Lin = Lout, 
                             padding = 0,
-                            dilation = 1, 
                             stride = kernel,
                             kernel_sz =  kernel
                             ) if max_pool else Lout
+
+        print(Lout, block['Lout'])
         block['output_chan'] = N_output_chan
         block['batch_norm'] =  nn.BatchNorm1d(num_features=N_output_chan)
         return block
@@ -86,11 +109,10 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
     def forward(self, x):
         # ( batch_sz, n_chan, n_sample)  = ( batch_sz,  7 , 500 )
         for  b in self.conv_blocks:
-            x = b['act'](b['batch_norm'](b['pool'](b['conv'](x))))
-        # ( batch_sz, convN.out_channels, Lout ) = (d1, d2, d3)
+            x = b['drop'](b['act'](b['batch_norm'](b['pool'](b['conv'](x)))))
+            
         x =  torch.cat(torch.split(x,1,dim=1),dim=2).squeeze(1) # stack & squeeze convs outputs
-        # ( d1, d2*d3 ) 
-        # => fc1 input is d2*d3 
+       
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
@@ -169,7 +191,7 @@ class DreemModelMultihead(BaseModel):
                         kernel_sz = conf['kernel']
                         )
         block['act'] =  nn.ReLU()
-        block['drop'] = nn.Dropout(conf.get('dropout',0.3))
+        block['drop'] = nn.Dropout(conf.get('dropout',0.1))
         block['pool'] = nn.MaxPool1d( kernel_size = conf.get('pool_kernel',2),stride= conf.get('pool_stride',2)) if max_pool else lambda x:x
         block['n_filters'] = conf['n_filters']
         block['Lout'] = get_out_size(   Lin = Lout, 
