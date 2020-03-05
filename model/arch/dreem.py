@@ -10,11 +10,12 @@ def get_out_size(Lin,kernel_sz,stride,padding,dilation=1):
     return Lout
 
 
-class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
-    def __init__(self, num_classes=2):
+class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
+    def __init__(self,m, num_classes=2):
             super().__init__()
             self.N_samples = 500
             self.N_chan = 7
+            self.m_kernel=m
             #for a  n^m model webuild:
             # a first conv layer with kernel-stride n
             #type   kernel  stride  padding filters output_dim
@@ -33,37 +34,12 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
             #maxpl  3       3       0       1024     6   x 1024  
 
             #1
-            self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 3,1,1,False)]
+            self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, self.m_kernel,1,1,False)]
             k=0
-            while self.conv_blocks[-1]['Lout'] > 10:
+            while self.conv_blocks[-1]['Lout'] > 2*self.m_kernel:
               k+=1
-              self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , 3,1,1,True))
-            # #2
-            # self.conv_blocks.append(self.build_block(128, 500, 128, 3,1,1,True))
-            # #3
-            # self.conv_blocks.append(self.build_block(128, 166, 256, 3,1,1,True))
-            # #4
-            # self.conv_blocks.append(self.build_block(256, 55, 512, 3,1,1,True))
-            # #5
-            # self.conv_blocks.append(self.build_block(512, 18, 1024, 3,1,1,True))
-            # #6
-            # self.conv_blocks.append(self.build_block(1024, 6, 1024, 3,1,1,True))
+              self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , self.m_kernel,1,1,True))
 
-            # self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, 2,1,0,False)]
-            # #2
-            # self.conv_blocks.append(self.build_block(128, 499, 128, 2,1,0,True))
-            # #3
-            # self.conv_blocks.append(self.build_block(128, 249, 256, 2,1,0,True))
-            # #4
-            # self.conv_blocks.append(self.build_block(256, 124, 256, 2,1,0,True))
-            # #5
-            # self.conv_blocks.append(self.build_block(256, 61, 512, 2,1,0,True))
-            # #6
-            # self.conv_blocks.append(self.build_block(512, 30, 512, 2,1,0,True))
-            # #7
-            # self.conv_blocks.append(self.build_block(512, 14, 1024, 2,1,0,True))
-            # #8
-            # self.conv_blocks.append(self.build_block(1024, 6, 1024, 2,1,0,True))
             for idx in range(len(self.conv_blocks)):
               for module in ('conv','drop','pool','batch_norm','act'):
                   setattr(self,f"L{idx}_{module}",self.conv_blocks[idx][module])
@@ -92,14 +68,14 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/170   3.01789.pdf
         block['act'] =  nn.ReLU()
 
         block['pool'] = nn.MaxPool1d( kernel_size = kernel) if max_pool else lambda x:x
-        block['drop'] = nn.Dropout(0.15)
+        block['drop'] = nn.Dropout(0.1)
         block['Lout'] = get_out_size(   Lin = Lout, 
                             padding = 0,
                             stride = kernel,
                             kernel_sz =  kernel
                             ) if max_pool else Lout
 
-        print(Lout, block['Lout'])
+        #print(Lout, block['Lout'])
         block['output_chan'] = N_output_chan
         block['batch_norm'] =  nn.BatchNorm1d(num_features=N_output_chan)
         return block
