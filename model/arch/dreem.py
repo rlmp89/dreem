@@ -15,7 +15,7 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
             super().__init__()
             self.N_samples = 500
             self.N_chan = 7
-            self.m_kernel=m
+            self.m_kernel = m
             #for a  n^m model webuild:
             # a first conv layer with kernel-stride n
             #type   kernel  stride  padding filters output_dim

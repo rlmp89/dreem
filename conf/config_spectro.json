@@ -1,0 +1,54 @@
+{
+    "name": "Dreem",
+    "n_gpu": 1,
+
+    "arch": {
+        "type": "DreemModel",
+        "args": { "m":3
+            
+        }
+    },
+    "data_loader": {
+        "type": "DreemDataLoader",
+        "args":{
+            "data_dir": "data/dreem/train",
+            "batch_size": 256,
+            "shuffle": true,
+            "validation_split": 0.25,
+            "num_workers": 8,
+            "transform": [  {"type": "outliers", "args":{"out":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]}}
+                        ]
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args":{
+            "lr": 0.0002,
+            "weight_decay": 0,
+            "amsgrad": true
+        }
+    },
+    "loss": {
+        "type":"nll_loss",
+        "args":{
+            "weight": [22.0,78.0]
+        }
+    },
+    "metrics": ["accuracy","roc_auc","f1","cohen_kappa"],
+    "lr_scheduler": {
+        "type": "StepLR",
+        "args": {
+            "step_size": 5,
+            "gamma": 0.25
+        }
+    },
+    "trainer": {
+        "epochs": 80,
+        "save_dir": "saved/",
+        "save_period": 2,
+        "verbosity": 2,
+        "monitor": "min val_loss",
+        "early_stop": 8,
+        "tensorboard": true
+    }
+}

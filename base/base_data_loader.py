@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
-
+import torch
 
 class BaseDataLoader(DataLoader):
     """
@@ -14,8 +14,8 @@ class BaseDataLoader(DataLoader):
 
         self.batch_idx = 0
         self.n_samples = len(dataset)
-        
-        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
+        self.dataset = dataset
+        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split,stratified=True)
 
         self.init_kwargs = {
             'dataset': dataset,
@@ -27,28 +27,36 @@ class BaseDataLoader(DataLoader):
        
         super().__init__(sampler=self.sampler, **self.init_kwargs)
 
-    def _split_sampler(self, split):
+
+
+    def _split_sampler(self, split,stratified=False):
         if split == 0.0:
             return None, None
 
-        idx_full = np.arange(self.n_samples)
-
-        np.random.seed(0)
-        np.random.shuffle(idx_full)
-
-        if isinstance(split, int):
-            assert split > 0
-            assert split < self.n_samples, "validation set size is configured to be larger than entire dataset."
-            len_valid = split
+       
+        if stratified:
+            from sklearn.model_selection import StratifiedShuffleSplit
+            s = StratifiedShuffleSplit(n_splits=1, test_size=split)
+            X = torch.zeros(self.n_samples,2).numpy()
+            y= self.dataset.labels
+            s.get_n_splits(X, y)
+            train_idx, valid_idx = next(s.split(X, y))
         else:
-            len_valid = int(self.n_samples * split)
-
-        valid_idx = idx_full[0:len_valid]
-        train_idx = np.delete(idx_full, np.arange(0, len_valid))
+            idx_full = np.arange(self.n_samples)
+            np.random.seed(0)
+            np.random.shuffle(idx_full)
+            if isinstance(split, int):
+                assert split > 0
+                assert split < self.n_samples, "validation set size is configured to be larger than entire dataset."
+                len_valid = split
+            else:
+                len_valid = int(self.n_samples * split)
+            valid_idx = idx_full[0:len_valid]
+            train_idx = np.delete(idx_full, np.arange(0, len_valid))
 
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
-        np.savetxt("valid.csv",valid_idx,fmt='%d')
+        
 
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False

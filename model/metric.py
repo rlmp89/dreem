@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from functools import partial
 import sys
+this=sys.modules[__name__]
 #################################
 # decorators
 #################################
@@ -30,7 +31,7 @@ def validMetric(metric):
 
 #set metric wrapper for metrics with args
 def wrappedMetric(metric_name, args={}):
-    target_func = getattr(sys.modules[__name__],metric_name)
+    target_func = getattr(this,metric_name)
     metric = partial(target_func,**args)
     # set attributes inherited from target function
     metric.__name__= target_func.__name__
@@ -40,7 +41,27 @@ def wrappedMetric(metric_name, args={}):
       setattr(metric,k,v)
     return metric
 
+class WrappedMetric(object):
+    def __init__(self,met):
+        if type(met)==str:
+            metric_name = met
+            self.kwargs={}
+        else:
+            metric_name = met['type']
+            self.kwargs = met['args']
 
+        self.target_func = getattr(this,metric_name)        
+        self.metric = partial(self.target_func,**self.kwargs)
+        # set attributes inherited from target function
+        for k,v in self.target_func.__dict__.items():
+            setattr(self.metric,k,v)
+    def __name__(self):
+        n = self.target_func.__name__
+        n += "_"+"_".join(["_".join([str(k),str(v)]) for k,v in self.kwargs.items()])
+        return n
+
+    def __call__(output, target):
+        return self.metric(output,target)
 
 
 @trainMetric
