@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from functools import partial
 import sys
-this=sys.modules[__name__]
+this = sys.modules[__name__]
 #################################
 # decorators
 #################################
@@ -60,7 +60,7 @@ class WrappedMetric(object):
         n += "_"+"_".join(["_".join([str(k),str(v)]) for k,v in self.kwargs.items()])
         return n
 
-    def __call__(output, target):
+    def __call__(self,output, target):
         return self.metric(output,target)
 
 
