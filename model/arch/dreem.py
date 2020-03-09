@@ -39,7 +39,7 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
             k=0
             while self.conv_blocks[-1]['Lout'] > 2*self.m_kernel:
               k+=1
-              self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , self.m_kernel,1,1,True))
+              self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , self.m_kernel,1,1,True))  
             for idx in range(len(self.conv_blocks)):
               for module in ('conv','drop','pool','batch_norm','act'):
                   setattr(self,f"L{idx}_{module}",self.conv_blocks[idx][module])

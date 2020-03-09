@@ -48,12 +48,12 @@ class DreemDataset(data.Dataset):
 
     def __getitem__(self, idx):
         # get data
-        x = self.data[idx, :, :]
+        x = torch.from_numpy(self.data[idx, :, :])
 
         for k,v in self.transform.items():
             if k!='outliers':
                 x= v(x)
-        x = torch.from_numpy(x).float()
+        
       
         # get label
         if self.training or self.testing:
@@ -77,7 +77,7 @@ class DreemDataLoader(BaseDataLoader):
 
 
 from torchaudio.transforms import Spectrogram
-class spectro(object):
+class spectrogram(object):
     """Apply spectrogram
     Args: 
         fft: n sample
@@ -85,9 +85,9 @@ class spectro(object):
     def __init__(self, nfft):
         self.spectro = Spectrogram(nfft,normalized=True,power=2)
     def __call__(self, sample):
-        return  self.spectro[sample]
+        return  self.spectro(sample)
     def __name__(self):
-        return "spectro"
+        return "spectrogram"
 
 
 def outliers(out):
