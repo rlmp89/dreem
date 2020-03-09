@@ -54,11 +54,11 @@ class WrappedMetric(object):
         self.metric = partial(self.target_func,**self.kwargs)
         # set attributes inherited from target function
         for k,v in self.target_func.__dict__.items():
-            setattr(self.metric,k,v)
-    def __name__(self):
+            setattr(self,k,v)
+ 
         n = self.target_func.__name__
-        n += "_"+"_".join(["_".join([str(k),str(v)]) for k,v in self.kwargs.items()])
-        return n
+        n += "_".join(["_".join([str(k),str(v)]) for k,v in self.kwargs.items()])
+        self.__name__ =  n
 
     def __call__(self,output, target):
         return self.metric(output,target)

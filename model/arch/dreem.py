@@ -11,10 +11,11 @@ def get_out_size(Lin,kernel_sz,stride,padding,dilation=1):
 
 
 class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
-    def __init__(self,m, num_classes=2):
+    def __init__(self,m, dense_layer_size=100, num_classes=2):
             super().__init__()
             self.N_samples = 500
             self.N_chan = 7
+            self.dense_layer_sz = dense_layer_size
             self.m_kernel = m
             #for a  n^m model webuild:
             # a first conv layer with kernel-stride n
@@ -39,15 +40,12 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
             while self.conv_blocks[-1]['Lout'] > 2*self.m_kernel:
               k+=1
               self.conv_blocks.append(self.build_block( self.conv_blocks[-1]["output_chan"], self.conv_blocks[-1]['Lout'],2**(7+k//2) , self.m_kernel,1,1,True))
-
             for idx in range(len(self.conv_blocks)):
               for module in ('conv','drop','pool','batch_norm','act'):
                   setattr(self,f"L{idx}_{module}",self.conv_blocks[idx][module])
-
             in_fc1 =  self.conv_blocks[-1]['Lout'] * self.conv_blocks[-1]['output_chan']
-    
-            self.fc1 = nn.Linear( in_fc1, 100)
-            self.fc2 = nn.Linear(100, num_classes)
+            self.fc1 = nn.Linear( in_fc1, self.dense_layer_sz)
+            self.fc2 = nn.Linear(self.dense_layer_sz, num_classes)
             
 
 
@@ -62,11 +60,9 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
         Lout = get_out_size( Lin = N_sample, 
                         padding = padding,
                         stride =stride,
-                        kernel_sz = kernel
-                       
+                        kernel_sz = kernel        
                         )
         block['act'] =  nn.ReLU()
-
         block['pool'] = nn.MaxPool1d( kernel_size = kernel) if max_pool else lambda x:x
         block['drop'] = nn.Dropout(0.1)
         block['Lout'] = get_out_size(   Lin = Lout, 
@@ -74,27 +70,20 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
                             stride = kernel,
                             kernel_sz =  kernel
                             ) if max_pool else Lout
-
-        #print(Lout, block['Lout'])
         block['output_chan'] = N_output_chan
         block['batch_norm'] =  nn.BatchNorm1d(num_features=N_output_chan)
         return block
          
-            
-
     def forward(self, x):
         # ( batch_sz, n_chan, n_sample)  = ( batch_sz,  7 , 500 )
         for  b in self.conv_blocks:
             x = b['drop'](b['act'](b['batch_norm'](b['pool'](b['conv'](x)))))
-            
         x =  torch.cat(torch.split(x,1,dim=1),dim=2).squeeze(1) # stack & squeeze convs outputs
-       
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         x = F.log_softmax(x, dim=1)
         return  x
-
 
 class DreemModelMultihead(BaseModel):
     def __init__(self, conf, num_classes=2):

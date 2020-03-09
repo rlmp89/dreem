@@ -4,8 +4,8 @@
 
     "arch": {
         "type": "DreemModel_nm",
-        "args": { "m":3
-            
+        "args": { "m":3,
+                    "dense_layer_size":100
         }
     },
     "data_loader": {
@@ -16,8 +16,9 @@
             "shuffle": true,
             "validation_split": 0.25,
             "num_workers": 8,
-            "transform":{"outliers":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]
-        }}
+            "transform": [  {"type": "outliers", "args":{"out":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]}}
+                        ]
+        }
     },
     "optimizer": {
         "type": "Adam",

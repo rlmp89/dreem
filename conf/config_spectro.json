@@ -3,9 +3,9 @@
     "n_gpu": 1,
 
     "arch": {
-        "type": "DreemModel",
-        "args": { "m":3
-            
+        "type": "DreemModel_nm",
+        "args": { "m":3,
+                    "dense_layer_size":100
         }
     },
     "data_loader": {
