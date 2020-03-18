@@ -17,24 +17,6 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
             self.N_chan = 7
             self.dense_layer_sz = dense_layer_size
             self.m_kernel = m
-            #for a  n^m model webuild:
-            # a first conv layer with kernel-stride n
-            #type   kernel  stride  padding filters output_dim
-        # 1 #conv   3       1       0       128     500 x 128
-            #------------------------------------------------
-        # 2 #conv   3       1       1       128     500 x 128 
-            #maxpl  3       3       0       128     166  x 128
-            #------------------------------------------------
-        # 3 #conv   3       1       1       128     166  x 256 
-            #maxpl  3       3       0       256     55  x 256
-            #------------------------------------------------
-        # 4 #conv   3       1       1       256     55  x 512
-            #maxpl  3       3       0       512     18   x 512 
-            #------------------------------------------------  
-        # 5 #conv   3       1       1       512     18  x 1024
-            #maxpl  3       3       0       1024     6   x 1024  
-
-            #1
             self.conv_blocks = [ self.build_block(self.N_chan, self.N_samples, 128, self.m_kernel,1,1,False)]
             k=0
             while self.conv_blocks[-1]['Lout'] > 2*self.m_kernel:
@@ -73,7 +55,7 @@ class DreemModel_nm(BaseModel):#https://arxiv.org/pdf/1703.01789.pdf
         block['output_chan'] = N_output_chan
         block['batch_norm'] =  nn.BatchNorm1d(num_features=N_output_chan)
         return block
-         
+        
     def forward(self, x):
         # ( batch_sz, n_chan, n_sample)  = ( batch_sz,  7 , 500 )
         for  b in self.conv_blocks:
@@ -93,7 +75,7 @@ class DreemModelMultihead(BaseModel):
         
         self.conv_blocks = {}
         
-   
+  
         #build first layer
         self.conv_blocks["layer_1"]={"conv":nn.ModuleList([]),
                                     "act":nn.ModuleList([]),
@@ -129,7 +111,7 @@ class DreemModelMultihead(BaseModel):
                   setattr(self,f"L2_{module}_{idx}",self.conv_blocks["layer_2"][module][idx])
 
 
-     
+    
 
         in_fc1 = sum(np.array(self.conv_blocks["layer_2"]["n_filters"]) * np.array(self.conv_blocks["layer_2"]['Lout']) )
       
@@ -170,7 +152,7 @@ class DreemModelMultihead(BaseModel):
           self.conv_blocks.get(f"layer_{layer}").get(k).append(v)
 
 
-       
+      
 
     def forward(self, x):
         X1 = [self.conv_blocks["layer_1"]['drop'][idx](
@@ -192,7 +174,7 @@ class DreemModelMultihead(BaseModel):
                       )
                     )
                   ) for idx in range(3)]
-     
+    
         X = [torch.cat(torch.split(x,1,dim=1),dim=2).squeeze(1) for x in X2]
         # stack & squeeze convs outputs
         x = torch.cat(X,dim=1)

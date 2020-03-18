@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import glob, os, h5py
 import pandas as pd
-from torch.utils import data
+from torch.utils import data    
 from utils.util import band_filter
 from functools import partial
 import sys
@@ -13,7 +13,7 @@ class DreemDataset(data.Dataset):
     def __init__(self, file_path,transform=[],training=True,testing=False):
         self.fpath = [f for f in glob.glob(os.path.join(file_path, '*.h5'))][0]
         assert self.fpath, "No file could be loaded"
-        self.training = training
+        self.training = training                
         self.testing = testing
         self.data = h5py.File(self.fpath,'r').get('features') #ballec on load en rame
 
@@ -43,7 +43,7 @@ class DreemDataset(data.Dataset):
         
             
 
-    def __len__(self):
+    def __len__(self):  
             return len(self.data)
 
     def __getitem__(self, idx):
