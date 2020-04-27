@@ -13,14 +13,14 @@
                    
                     },
                     {"n_filters":256,
-                        "kernel":4,
+                        "kernel":3,
                         "stride":1,
                         "pool_kernel":2,
                         "pool_stride" :2
                                  
                         },
                     {"n_filters":256,
-                            "kernel":3,
+                            "kernel":4,
                             "stride":1,
                             "pool_kernel":2,
                             "pool_stride" :2
@@ -34,7 +34,7 @@
             "shuffle": false,
             "validation_split": 0.25,
             "num_workers": 8,
-            "transform":{"outliers":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]}
+            "transform":[ {"type": "outliers", "args":{"out":[14,721,439,943,934,622,149,460,556,220,219,603,519,788,799,191,402]}}]
         }
     },
     "optimizer": {
