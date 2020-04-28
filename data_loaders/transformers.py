@@ -1,6 +1,6 @@
 
 from torchaudio.transforms import Spectrogram
-from sklearn.preprocessing import MinMaxScaler
+#from sklearn.preprocessing import MinMaxScaler
 from utils.util import band_filter
 import json
 
@@ -17,11 +17,23 @@ class spectrogram(object):
         return "spectrogram"
 
 
-class minmaxscaler(object):
+'''class sklearn_minmaxscaler(object):
     def __init__(self):
         self.scaler = MinMaxScaler() 
     def __call__(self, sample):
         return  self.scaler.fit_transform(sample)
+    def __name__(self):
+        return "min-max scaler"
+'''
+
+class minmaxscaler(object):
+    """
+    Transforms each channel to the range [0, 1].
+    """
+    def __call__(self, tensor):
+        scale = 1.0 / (tensor.max(dim=1, keepdim=True)[0] - tensor.min(dim=1, keepdim=True)[0]) 
+        tensor.mul_(scale).sub_(tensor.min(dim=1, keepdim=True)[0])
+        return tensor
     def __name__(self):
         return "min-max scaler"
 

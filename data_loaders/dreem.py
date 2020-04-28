@@ -21,16 +21,17 @@ class DreemDataset(data.Dataset):
         self.transform = OrderedDict({t['type']:getattr(transformers,t['type'])(**t.get('args',{})) for t in transform })
         print("Pre-processing pipeline:\n\t- " + "\n\t- ".join([p.__name__() for p in self.transform.values()]))
         
-        N = self.data.shape[0]
-        self.outliers = self.transform.get('outliers')(n_idv=N,training=self.training )
+        N_idv = self.data.shape[0]
+        N_trials = self.data.shape[1]
+        self.outliers = self.transform.get('outliers')(n_idv=N_idv, training=self.training )
         
-        keep_idx = np.delete(np.arange(N), self.outliers )
-        self.data = np.vstack([k.squeeze(axis=1) for k in np.split(self.data[keep_idx,:,:],self.data.shape[1],axis=1)])
+        keep_idx = np.delete(np.arange(N_idv * N_trials), self.outliers )
+        self.data = np.vstack([k.squeeze(axis=1) for k in np.split(self.data, N_trials, axis=1)])[keep_idx]
    
         if self.training or self.testing:
           labelspath =  [f for f in glob.glob(os.path.join(file_path, '*.csv'))][0]
           self.labels = pd.read_csv(labelspath,index_col='id').values
-          self.labels = np.vstack([self.labels[keep_idx] for _ in range(40)])
+          self.labels = np.vstack([self.labels  for _ in range(N_trials)])[keep_idx]
        
     def __len__(self):  
             return len(self.data)
