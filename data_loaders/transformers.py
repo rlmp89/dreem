@@ -1,10 +1,11 @@
 
+
 from torchaudio.transforms import Spectrogram
-#from sklearn.preprocessing import MinMaxScaler
 from utils.util import band_filter
 import json
 
 class spectrogram(object):
+    from torchaudio.transforms import Spectrogram
     """Apply spectrogram
     Args: 
         nfft: n sample
@@ -16,15 +17,6 @@ class spectrogram(object):
     def __name__(self):
         return "spectrogram"
 
-
-'''class sklearn_minmaxscaler(object):
-    def __init__(self):
-        self.scaler = MinMaxScaler() 
-    def __call__(self, sample):
-        return  self.scaler.fit_transform(sample)
-    def __name__(self):
-        return "min-max scaler"
-'''
 
 class minmaxscaler(object):
     """

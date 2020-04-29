@@ -16,18 +16,23 @@ class DreemDataset(data.Dataset):
         assert self.fpath, "No file could be loaded"
         self.training = training                
         self.testing = testing
-        self.data = h5py.File(self.fpath,'r').get('features') #ballec on load en ram
+        self.data = h5py.File(self.fpath,'r').get('features') # <!>  laoded in ram
 
-        self.transform = OrderedDict({t['type']:getattr(transformers,t['type'])(**t.get('args',{})) for t in transform })
-        print("Pre-processing pipeline:\n\t- " + "\n\t- ".join([p.__name__() for p in self.transform.values()]))
-        
         N_idv = self.data.shape[0]
         N_trials = self.data.shape[1]
-        self.outliers = self.transform.get('outliers')(n_idv=N_idv, training=self.training )
+
+        #load preprocessing transformers
+        self.transform = OrderedDict({t['type']: getattr(transformers,t['type'])(**t.get('args',{})) for t in transform })
+        if self.transforms:
+          print("Pre-processing pipeline:\n\t- " + "\n\t- ".join([p.__name__() for p in self.transform.values()]))
         
+        #remove outliers
+        outliers_transf = self.transform.get('outliers')
+        self.outliers = outliers_transf(n_idv=N_idv, training=self.training ) if outliers_transf else []
         keep_idx = np.delete(np.arange(N_idv * N_trials), self.outliers )
         self.data = np.vstack([k.squeeze(axis=1) for k in np.split(self.data, N_trials, axis=1)])[keep_idx]
    
+        #load labels
         if self.training or self.testing:
           labelspath =  [f for f in glob.glob(os.path.join(file_path, '*.csv'))][0]
           self.labels = pd.read_csv(labelspath,index_col='id').values
@@ -59,10 +64,3 @@ class DreemDataLoader(BaseDataLoader):
         self.data_dir = data_dir
         self.dataset = DreemDataset(self.data_dir, transform=transform, training=training, testing=testing)
         super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
-
-
-
-
-
-
-
