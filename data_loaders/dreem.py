@@ -23,7 +23,7 @@ class DreemDataset(data.Dataset):
 
         #load preprocessing transformers
         self.transform = OrderedDict({t['type']: getattr(transformers,t['type'])(**t.get('args',{})) for t in transform })
-        if self.transforms:
+        if self.transform:
           print("Pre-processing pipeline:\n\t- " + "\n\t- ".join([p.__name__() for p in self.transform.values()]))
         
         #remove outliers

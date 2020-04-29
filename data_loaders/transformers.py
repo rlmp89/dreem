@@ -22,9 +22,13 @@ class minmaxscaler(object):
     """
     Transforms each channel to the range [0, 1].
     """
+    eps = 1.e-6
+
     def __call__(self, tensor):
-        scale = 1.0 / (tensor.max(dim=1, keepdim=True)[0] - tensor.min(dim=1, keepdim=True)[0]) 
-        tensor.mul_(scale).sub_(tensor.min(dim=1, keepdim=True)[0])
+        _max = tensor.max(dim=1, keepdim=True)[0]
+        _min = tensor.min(dim=1, keepdim=True)[0]
+        scale = 1.0 / (_max - _min  + eps ) 
+        tensor.mul_(scale).sub_(_min)
         return tensor
     def __name__(self):
         return "min-max scaler"
