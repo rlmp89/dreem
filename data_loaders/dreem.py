@@ -30,8 +30,9 @@ class DreemDataset(data.Dataset):
         outliers_transf = self.transform.get('outliers')
         self.outliers = outliers_transf(n_idv=N_idv, training=self.training ) if outliers_transf else []
         keep_idx = np.delete(np.arange(N_idv * N_trials), self.outliers )
-        self.data = np.vstack([k.squeeze(axis=1) for k in np.split(self.data, N_trials, axis=1)])[keep_idx]
-   
+        self.data = np.vstack([k.squeeze(axis=0) for k in np.split(self.data, N_idv, axis=0)])[keep_idx]
+        
+
         #load labels
         if self.training or self.testing:
           labelspath =  [f for f in glob.glob(os.path.join(file_path, '*.csv'))][0]
