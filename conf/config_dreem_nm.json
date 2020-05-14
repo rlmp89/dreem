@@ -5,7 +5,7 @@
     "arch": {
         "type": "DreemModel_nm",
         "args": { "m":3,
-                    "dense_layer_size":100
+                    "dense_layer_size":50
         }
     },
     "data_loader": {
@@ -14,7 +14,7 @@
             "data_dir": "data/dreem/train",
             "batch_size": 256,
             "shuffle": true,
-            "validation_split": 0.25,
+            "validation_split": 0.2,
             "num_workers": 8,
             "transform": [  {"type": "outliers", "args":{"path":"outliers.json"}}, 
                             {"type": "minmaxscaler"}
@@ -24,7 +24,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.0002,
+            "lr": 0.001,
             "weight_decay": 0,
             "amsgrad": true
         }
