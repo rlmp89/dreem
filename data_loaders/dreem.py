@@ -16,7 +16,7 @@ class DreemDataset(data.Dataset):
         assert self.fpath, "No file could be loaded"
         self.training = training                
         self.testing = testing
-        self.data = h5py.File(self.fpath,'r').get('features') # <!>  laoded in ram
+        self.data = h5py.File(self.fpath,'r').get('features') # <!>  loaded in ram
 
         N_idv = self.data.shape[0]
         N_trials = self.data.shape[1]

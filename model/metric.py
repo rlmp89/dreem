@@ -30,7 +30,7 @@ def validMetric(metric):
 #################################
 
 #set metric wrapper for metrics with args
-def wrappedMetric(metric_name, args={}):
+'''def wrappedMetric(metric_name, args={}):
     target_func = getattr(this,metric_name)
     metric = partial(target_func,**args)
     # set attributes inherited from target function
@@ -39,7 +39,7 @@ def wrappedMetric(metric_name, args={}):
   
     for k,v in target_func.__dict__.items():
       setattr(metric,k,v)
-    return metric
+    return metric'''
 
 class WrappedMetric(object):
     def __init__(self,met):
