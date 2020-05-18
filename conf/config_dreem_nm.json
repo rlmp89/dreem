@@ -14,8 +14,8 @@
             "data_dir": "data/dreem/train",
             "batch_size": 256,
             "shuffle": true,
-            "validation_split": 0.2,
-            "num_workers": 8,
+            "validation_split": 0.2 ,
+            "num_workers": 1,
             "transform": [  {"type": "outliers", "args":{"path":"outliers.json"}}, 
                             {"type": "minmaxscaler"}
                         ]

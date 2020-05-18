@@ -37,8 +37,7 @@ class DreemDataset(data.Dataset):
         if self.training or self.testing:
           labelspath =  [f for f in glob.glob(os.path.join(file_path, '*.csv'))][0]
           self.labels = pd.read_csv(labelspath,index_col='id').values
-          self.labels = np.vstack([self.labels  for _ in range(N_trials)])[keep_idx]
-       
+          self.labels = np.concatenate([ [label]*N_trials for label in self.labels ])[keep_idx]
     def __len__(self):  
             return len(self.data)
 
@@ -59,9 +58,9 @@ class DreemDataset(data.Dataset):
     
 class DreemDataLoader(BaseDataLoader):
     """
-    Dreem data loading demo using BaseDataLoader
+    Dreem data loading  using BaseDataLoader
     """
-    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True, testing=False, transform={}):
+    def __init__(self, data_dir, batch_size, shuffle=True, validation_split=0.0, num_workers=1, training=True, testing=False, stratified=True, transform={}):
         self.data_dir = data_dir
         self.dataset = DreemDataset(self.data_dir, transform=transform, training=training, testing=testing)
-        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers)
+        super().__init__(self.dataset, batch_size, shuffle, validation_split, num_workers,stratified)

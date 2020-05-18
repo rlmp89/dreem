@@ -8,14 +8,14 @@ class BaseDataLoader(DataLoader):
     """
     Base class for all data loaders
     """
-    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate):
+    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, stratified, collate_fn=default_collate):
         self.validation_split = validation_split
         self.shuffle = shuffle
 
         self.batch_idx = 0
         self.n_samples = len(dataset)
         self.dataset = dataset
-        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split,stratified=True)
+        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split, stratified=stratified)
 
         self.init_kwargs = {
             'dataset': dataset,
@@ -39,8 +39,8 @@ class BaseDataLoader(DataLoader):
             s = StratifiedShuffleSplit(n_splits=1, test_size=split)
             X = torch.zeros(self.n_samples,2).numpy()
             y= self.dataset.labels
-            s.get_n_splits(X, y)
             train_idx, valid_idx = next(s.split(X, y))
+
         else:
             idx_full = np.arange(self.n_samples)
             np.random.seed(0)
